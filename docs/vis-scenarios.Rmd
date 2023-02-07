@@ -1,0 +1,121 @@
+---
+title: "Hospitalization scenarios"
+author: "Michael Garber"
+date: "`r Sys.Date()`"
+output:
+  bookdown::html_document2:
+    toc: true
+    toc_float: true
+    toc_depth: 4
+---
+
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+#Load data and packages
+library(here)
+library(mapview)
+library(tidyverse)
+library(viridis)
+library(viridisLite)
+setwd(here("data-processed"))
+load("hosp_both_geo.RData")
+#Data created here:
+#heat-hosp-california/scripts/link-zcta-hosp-data.R
+```
+
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+#Define mapview functions
+
+mv_ratio_fun = function(var_name){
+  hosp_both_geo %>% 
+    filter(ratio_diff=="ratio") %>% 
+    dplyr::select("zcta", all_of(var_name), "ratio_diff") %>% 
+    mapview(
+      col.regions= viridis_pal(option = "A", direction = 1),
+      zcol = var_name,
+      basemaps = c("CartoDB.Positron", "CartoDB.DarkMatter"),
+      layer.name = "Ratio")
+}
+
+mv_diff_fun = function(var_name){
+  hosp_both_geo %>% 
+    filter(ratio_diff=="diff") %>% 
+    dplyr::select("zcta", all_of(var_name), "ratio_diff") %>% 
+    mapview(
+      col.regions= viridis_pal(option = "D", direction = 1),
+      zcol = var_name,
+      basemaps = c("CartoDB.Positron", "CartoDB.DarkMatter"),
+      layer.name = "Difference")
+}
+
+```
+
+# Scenario definitions
+
+-   Tree canopy
+
+    -   Population-based Scenario: AI: Increase by 10% in all zip codes
+
+    -   Targeted
+
+        -   Scenario AII1: Increase by 10% in zip codes in the lowest 1/5th of current TC cover (i.e. \<=20th pctile)
+
+        -   Scenario AII2: Increase by 10% in zip codes in the highest 1/5th of the Social Vulnerability Index (i.e. \>80th pctile)
+
+        -   Scenario AII3: Increase by 10% in zip codes in the highest 1/5th of hospitalization burden (i.e. \>80th pctile)
+
+    -   Proportionate-universalism
+
+        -   Scenario AIII1: Increase by 10% for bottom 1/5th of current TC cover... down to 2% for top 1/5th
+
+        -   Scenario AIII2: Increase by 10% for top 1/5th of SVI ... down to 2% for bottom 1/5th
+
+        -   Scenario AIII3: Increase by 10% for top 1/5th of hospitalization burden ... down to 2% for bottom 1/5th
+
+-   Impervious surface cover
+
+    -   Population-based: Scenario BI: Decrease by 10% in all zip codes
+
+    -   Targeted
+
+        -   Scenario BII1: Decrease by 10% in zip codes in the highest 1/5th of current imperv cover (i.e. \>80th pctile)
+
+        -   Scenario BII2: Decrease by 10% in zip codes in the highest 1/5th of the Social Vulnerability Index (i.e. \>80th pctile)
+
+        -   Scenario BII3: Decrease by 10% in zip codes in the highest 1/5th of hospitalization burden (i.e. \>80th pctile)
+
+    -   Proportionate-universalism
+
+        -   Scenario BIII1: Decrease by 10% for top 1/5th of current imperv cover ... down to 2% for bottom 1/5th
+
+        -   Scenario BIII2: Decrease by 10% for top 1/5th of SVI ... down to 2% for bottom 1/5th
+
+        -   Scenario BIII3: Decrease by 10% for top 1/5th of hospitalization burden ... down to 2% for bottom 1/5th
+
+
+
+# Visualization of scenarios
+The following maps visualize, for each scenario, ratio-based and difference-based effect estimates on hospitalizations in California at the level of the zip-code tabulation area.
+
+## Tree canopy
+### Population-based Scenario
+Ratio
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_ratio_fun("AI")
+```
+
+Difference
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_diff_fun("AI")
+```
+
+### Targeted Scenario
+Ratio
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_ratio_fun("AII1")
+```
+
+Difference
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_diff_fun("AII1")
+```
+
