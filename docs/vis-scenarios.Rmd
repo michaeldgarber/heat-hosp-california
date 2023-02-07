@@ -1,6 +1,6 @@
 ---
 title: "Hospitalization scenarios"
-author: "Michael Garber"
+#author: "Michael Garber"
 date: "`r Sys.Date()`"
 output:
   bookdown::html_document2:
@@ -16,6 +16,8 @@ library(mapview)
 library(tidyverse)
 library(viridis)
 library(viridisLite)
+library(leaflet)
+library(leaflet.extras)
 setwd(here("data-processed"))
 load("hosp_both_geo.RData")
 #Data created here:
@@ -25,6 +27,9 @@ load("hosp_both_geo.RData")
 ```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
 #Define mapview functions
 
+#Set basemaps
+mapviewOptions(
+  basemaps = c("CartoDB.Positron","CartoDB.DarkMatter"))
 mv_ratio_fun = function(var_name){
   hosp_both_geo %>% 
     filter(ratio_diff=="ratio") %>% 
@@ -32,7 +37,7 @@ mv_ratio_fun = function(var_name){
     mapview(
       col.regions= viridis_pal(option = "A", direction = 1),
       zcol = var_name,
-      basemaps = c("CartoDB.Positron", "CartoDB.DarkMatter"),
+     lwd=.75,
       layer.name = "Ratio")
 }
 
@@ -43,7 +48,7 @@ mv_diff_fun = function(var_name){
     mapview(
       col.regions= viridis_pal(option = "D", direction = 1),
       zcol = var_name,
-      basemaps = c("CartoDB.Positron", "CartoDB.DarkMatter"),
+      lwd=.75,
       layer.name = "Difference")
 }
 
@@ -96,8 +101,9 @@ mv_diff_fun = function(var_name){
 # Visualization of scenarios
 The following maps visualize, for each scenario, ratio-based and difference-based effect estimates on hospitalizations in California at the level of the zip-code tabulation area.
 
+
 ## Tree canopy
-### Population-based Scenario
+### Population-based Scenario: Increase by 10% in all zip codes
 Ratio
 ```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
 mv_ratio_fun("AI")
@@ -105,10 +111,13 @@ mv_ratio_fun("AI")
 
 Difference
 ```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-mv_diff_fun("AI")
+mv = mv_diff_fun("AI")
+mv@map %>% 
+  addFullscreenControl()
 ```
 
-### Targeted Scenario
+### Targeted Scenarios
+#### Scenario AII1: Increase by 10% in zip codes in the lowest 1/5th of current TC cover (i.e. <=20th pctile) 
 Ratio
 ```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
 mv_ratio_fun("AII1")
@@ -119,3 +128,139 @@ Difference
 mv_diff_fun("AII1")
 ```
 
+#### Scenario AII2: Increase by 10% in zip codes in the highest 1/5th of the Social Vulnerability Index (i.e. >80th pctile)
+Ratio
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_ratio_fun("AII2")
+```
+
+Difference
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_diff_fun("AII2")
+```
+
+#### Scenario AII3: Increase by 10% in zip codes in the highest 1/5th of hospitalization burden (i.e. >80th pctile)
+Ratio
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_ratio_fun("AII3")
+```
+
+Difference
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_diff_fun("AII3")
+```
+
+### Proportinate-universalism Scenarios
+#### Scenario AIII1: Increase by 10% for bottom 1/5th of current TC cover… down to 2% for top 1/5th
+Ratio
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_ratio_fun("AIII1")
+```
+
+Difference
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_diff_fun("AIII1")
+```
+
+#### Scenario AIII2: Increase by 10% for top 1/5th of SVI … down to 2% for bottom 1/5th
+Ratio
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_ratio_fun("AIII2")
+```
+
+Difference
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_diff_fun("AIII2")
+```
+
+#### Scenario AIII3: Increase by 10% for top 1/5th of hospitalization burden … down to 2% for bottom 1/5th
+Ratio
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_ratio_fun("AIII3")
+```
+
+Difference
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_diff_fun("AIII3")
+```
+
+## Impervious surface cover
+### Population-based Scenario: Decrease by 10% in all zip codes
+Ratio
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_ratio_fun("BI")
+```
+
+Difference
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_ratio_fun("BI")
+```
+
+### Targeted Scenarios
+#### Scenario BII1: Decrease by 10% in zip codes in the highest 1/5th of current imperv cover (i.e. >80th pctile)
+Ratio
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_ratio_fun("BII1")
+```
+
+Difference
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_ratio_fun("BII1")
+```
+
+#### Scenario BII2: Decrease by 10% in zip codes in the highest 1/5th of the Social Vulnerability Index (i.e. >80th pctile)
+Ratio
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_ratio_fun("BII2")
+```
+
+Difference
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_ratio_fun("BII2")
+```
+
+#### Scenario BII3: Decrease by 10% in zip codes in the highest 1/5th of hospitalization burden (i.e. >80th pctile)
+Ratio
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_ratio_fun("BII3")
+```
+
+Difference
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_ratio_fun("BII3")
+```
+
+### Proportionate-universalism
+#### Scenario BIII1: Decrease by 10% for top 1/5th of current imperv cover … down to 2% for bottom 1/5th
+Ratio
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_ratio_fun("BIII1")
+```
+
+Difference
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_ratio_fun("BIII1")
+```
+
+
+#### Scenario BIII2: Decrease by 10% for top 1/5th of SVI … down to 2% for bottom 1/5th 
+Ratio
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_ratio_fun("BIII2")
+```
+
+Difference
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_ratio_fun("BIII2")
+```
+
+#### Scenario BIII3: Decrease by 10% for top 1/5th of hospitalization burden … down to 2% for bottom 1/5th
+Ratio
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_ratio_fun("BIII3")
+```
+
+Difference
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+mv_ratio_fun("BIII3")
+```

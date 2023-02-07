@@ -34,20 +34,6 @@ hosp_both_geo %>%
     zcol = "AI",
           layer.name = "Tree canopy, Pop. based: Increase by 10%, all zip codes, Difference")
 
-#how about a function?
-
-mv_ratio_fun = function(var_name){
-  hosp_both_geo %>% 
-    filter(ratio_diff=="ratio") %>% 
-    dplyr::select("zcta", all_of(var_name), "ratio_diff") %>% 
-    mapview(
-      col.regions= viridis_pal(option = "A", direction = 1),
-      zcol = var_name,
-      basemaps = c("CartoDB.Positron", "CartoDB.DarkMatter"),
-      layer.name = "Ratio")
-}
-
-mv_ratio_fun(var_name = "AI") #cool. works.
 
 #what are the unique values of the scenario abbreviations?
 names(hosp_both_geo)
