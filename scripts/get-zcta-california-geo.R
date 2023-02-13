@@ -48,8 +48,10 @@ nrow(zcta_ca_list)
 # Filter to California ZCTAs
 zcta_ca_geo = zcta_usa_wrangle %>% 
   left_join(zcta_ca_list, by = "zcta") %>% 
-  filter(zcta_in_cali==1) %>% 
-  #try simplifying the sf objects...may reduce the size of the data for eventual mapview rendering
+  filter(zcta_in_cali==1) 
+
+#try simplifying the sf objects...may reduce the size of the data for eventual mapview rendering
+zcta_ca_geo_simplified = zcta_ca_geo %>% 
   st_simplify(dTolerance = 500)
 
 object.size(zcta_ca_geo) 
@@ -63,6 +65,7 @@ zcta_ca_geo %>% mapview(lwd=1)
 #okay, save this for use elsewhere
 setwd(here("data-processed"))
 save(zcta_ca_geo, file = "zcta_ca_geo.RData")
+save(zcta_ca_geo_simplified, file = "zcta_ca_geo_simplified.RData")
 
 #Save a very small number of zip codes for troubleshooting
 zcta_ca_first_10_geo = zcta_ca_geo %>% 
