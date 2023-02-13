@@ -71,9 +71,13 @@ hosp_ratio_long = hosp_both_long %>%
             10,
             100,
             max(value,na.rm=TRUE)
-          )))
+          )),
+    #mapview doesn't like factors, so try
+    value_cat_char = as.character(value_cat)
+  )
+
   
-table(hosp_ratio_long$value_cat)
+table(hosp_ratio_long$value_cat_char)
 
 hosp_diff_long = hosp_both_long %>% 
   filter(ratio_diff=="diff") %>% 
@@ -93,6 +97,9 @@ hosp_diff_long = hosp_both_long %>%
           0.01,
           max(value,na.rm=TRUE)
         )
-      )
+      ),
+    #mapview doesn't like factors, so try
+    value_cat_char = as.character(value_cat)
   )
 
+hosp_diff_long
