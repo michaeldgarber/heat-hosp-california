@@ -1,5 +1,5 @@
 #This script reads in Maren's data
-#February 7th, 2023
+#Revised Mar 3, 2023
 
 library(readr)
 library(readxl)
@@ -11,7 +11,8 @@ load("zcta_ca_list.RData")
 # Read data------
 zcta_ca_list
 setwd(here("data-input"))
-hosp_ratio = read_csv("HospRatio.csv") %>% 
+#Maren revised filename Mar 3, 2023 from HospRatio.csv to StandardizedHosp.csv
+hosp_ratio = read_csv("StandardizedHosp.csv") %>% 
   #Rename from ZIP to zcta for easy linking with other data
   rename(zcta = ZIP) %>% 
   mutate(ratio_diff = "ratio")
@@ -49,6 +50,8 @@ hosp_both_long %>%
   summary()
 
 # Create categories for ratios and differences--------
+#Limit to about 5 bins
+.65/3
 hosp_ratio_long = hosp_both_long %>% 
   filter(ratio_diff=="ratio") %>% 
   mutate(
@@ -58,18 +61,10 @@ hosp_ratio_long = hosp_both_long %>%
           include.lowest=TRUE,
           breaks=c(
             min(value,na.rm=TRUE),
-            #see below distribution which informed this
-            #Note that the usual quantile() approach didn't work
-            #because min and 25th percentile were often the same value...not unique breaks
-            0.005,
-            0.01,
-            0.05,
-            .1,
-            .15,
-            .2,
-            1,
-            10,
-            100,
+            quantile(value, probs =c(0.35), na.rm=TRUE),
+            quantile(value, probs =c(0.55), na.rm=TRUE),
+            quantile(value, probs =c(0.75), na.rm=TRUE),
+            quantile(value, probs =c(0.9), na.rm=TRUE),
             max(value,na.rm=TRUE)
           )),
     #mapview doesn't like factors, so try
@@ -77,7 +72,7 @@ hosp_ratio_long = hosp_both_long %>%
   )
 
   
-table(hosp_ratio_long$value_cat_char)
+table(hosp_ratio_long$value_cat)
 
 hosp_diff_long = hosp_both_long %>% 
   filter(ratio_diff=="diff") %>% 
@@ -89,17 +84,15 @@ hosp_diff_long = hosp_both_long %>%
         include.lowest=TRUE,
         breaks=c(
           min(value,na.rm=TRUE),
-          0.0001,
-          0.0002,
-          0.0004,
-          0.001,
-          0.002,
-          0.01,
+          #more cut-offs at the top of the dist'n because that's where there's more variation
+          quantile(value, probs =c(0.43), na.rm=TRUE),
+          quantile(value, probs =c(0.6), na.rm=TRUE),
+          quantile(value, probs =c(0.8), na.rm=TRUE),
+          quantile(value, probs =c(0.9), na.rm=TRUE),
           max(value,na.rm=TRUE)
-        )
-      ),
+        )),
     #mapview doesn't like factors, so try
     value_cat_char = as.character(value_cat)
   )
 
-hosp_diff_long
+table(hosp_diff_long$value_cat)
