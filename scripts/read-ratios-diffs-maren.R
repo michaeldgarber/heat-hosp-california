@@ -102,7 +102,7 @@ table(hosp_all_long$scenario_sub_type)
 setwd(here("data-processed"))
 save(hosp_all_long, file = "hosp_all_long.RData")
 table(hosp_all_long$scenario)
-#Examine distribution of each-----
+#Histograms to examine distribution of each-----
 table(hosp_all_long$scenario)
 hosp_all_long %>% 
   filter(measure=="irr") %>% 
@@ -172,6 +172,13 @@ hosp_all_long %>%
   dplyr::select(value) %>% 
   summary()
 
+#Lookups for names-----
+lookup_scenario= hosp_all_long %>% 
+  dplyr::select(starts_with("scenario")) %>% 
+  distinct()
+
+lookup_scenario
+
 
 # Create categories for each measure--------
 #Limit to about 5 bins
@@ -238,3 +245,39 @@ hosp_pd_long = hosp_all_long %>%
 
 table(hosp_pd_long$value_cat)
 length(table(hosp_pd_long$value_cat))
+
+# column charts - facet by scenario------
+
+hosp_irr_long %>% 
+  group_by(measure, scenario) %>% 
+  summarise(irr_mean=mean(value,na.rm=TRUE)) %>% 
+  ungroup() %>% 
+  left_join(lookup_scenario, by ="scenario") %>% 
+  ggplot(aes(y=irr_mean,x=scenario_type_7_abbrev))+
+  geom_col()+
+  labs(x="Scenario", y="Mean IRR over ZCTA")+
+  facet_grid(
+    #Move facet down to x-axis
+    #https://stackoverflow.com/questions/67519146/bar-plot-with-named-groups-on-x-axis-in-ggplot2
+    cols=vars(scenario_intervention),
+    scales="free_x",
+    space="free_x",
+    switch="x"
+  )+
+  theme(panel.spacing = unit(0, units = "cm"), # removes space between panels
+        strip.placement = "outside", # moves the states down
+        strip.background = element_rect(fill = "white") 
+  )
+
+names(hosp_ird_long)
+hosp_ird_long %>% 
+  group_by(measure, scenario) %>% 
+  summarise(ird_mean=mean(value,na.rm=TRUE)) %>% 
+  ungroup() %>% 
+  left_join(lookup_scenario, by ="scenario") %>% 
+  ggplot(aes(y=ird_mean,x=scenario_type_7_abbrev))+
+  geom_col()+
+  facet_grid(
+    cols=vars(scenario_intervention)
+  )
+

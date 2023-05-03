@@ -73,7 +73,8 @@ source(here("scripts","link-zcta-hosp-data.R"))#load linked files
 
 
 
-# Explore distribution of IRR, IRD, and perc. diff
+# Plots
+## Histograms of IRR, IRD, and perc. diff
 Facet by type of intervention (impervious surfaces vs tree canopy) and by scenario type - Population-based, Proportionate Universalism, Targeted
 ```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 facet_histogram_fun=function(df){
@@ -110,22 +111,110 @@ hosp_all_long %>%
   xlab("PD")
 ```
 
+## Bar charts
+Note I took the mean of each measure over all zip codes. 
+For the ratios and percent differences, I would suggest calculating the mean a different way: calculate the total number of baseline hospitalizations and the total number of hospitalizations prewvented - over all zip codes and then calculate the corresponding measure (IRR or PD).
+
+I think the means would be the same for the IRDs but not for the IRRs and PDs
+
+### Mean IRR 
+```{r}
+hosp_all_long %>% 
+  filter(measure=="irr") %>% 
+  group_by(measure, scenario) %>% 
+  summarise(irr_mean=mean(value,na.rm=TRUE)) %>% 
+  ungroup() %>% 
+  left_join(lookup_scenario, by ="scenario") %>% 
+  ggplot(aes(y=irr_mean,x=scenario_type_7_abbrev))+
+  geom_col()+
+  labs(x="Scenario", y="Mean IRR over ZCTA")+
+  facet_grid(
+    #Move facet down to x-axis
+    #https://stackoverflow.com/questions/67519146/bar-plot-with-named-groups-on-x-axis-in-ggplot2
+    cols=vars(scenario_intervention),
+    scales="free_x",
+    space="free_x",
+    switch="x"
+  )+
+  theme(panel.spacing = unit(0, units = "cm"), # removes space between panels
+        strip.placement = "outside", # moves the states down
+        strip.background = element_rect(fill = "white") 
+  )
+
+```
+
+### Mean IRD
+```{r}
+hosp_all_long %>% 
+  filter(measure=="ird") %>% 
+  group_by(measure, scenario) %>% 
+  summarise(ird_mean=mean(value,na.rm=TRUE)) %>% 
+  ungroup() %>% 
+  left_join(lookup_scenario, by ="scenario") %>% 
+  ggplot(aes(y=ird_mean,x=scenario_type_7_abbrev))+
+  geom_col()+
+  labs(x="Scenario", y="Mean IRD over ZCTA")+
+  facet_grid(
+    #Move facet down to x-axis
+    #https://stackoverflow.com/questions/67519146/bar-plot-with-named-groups-on-x-axis-in-ggplot2
+    cols=vars(scenario_intervention),
+    scales="free_x",
+    space="free_x",
+    switch="x"
+  )+
+  theme(panel.spacing = unit(0, units = "cm"), # removes space between panels
+        strip.placement = "outside", # moves the states down
+        strip.background = element_rect(fill = "white") 
+  )
+
+```
+
+### Mean PD
+```{r}
+hosp_all_long %>% 
+  filter(measure=="pd") %>% 
+  group_by(measure, scenario) %>% 
+  summarise(pd_mean=mean(value,na.rm=TRUE)) %>% 
+  ungroup() %>% 
+  left_join(lookup_scenario, by ="scenario") %>% 
+  ggplot(aes(y=pd_mean,x=scenario_type_7_abbrev))+
+  geom_col()+
+  labs(x="Scenario", y="Mean PD over ZCTA")+
+  facet_grid(
+    #Move facet down to x-axis
+    #https://stackoverflow.com/questions/67519146/bar-plot-with-named-groups-on-x-axis-in-ggplot2
+    cols=vars(scenario_intervention),
+    scales="free_x",
+    space="free_x",
+    switch="x"
+  )+
+  theme(panel.spacing = unit(0, units = "cm"), # removes space between panels
+        strip.placement = "outside", # moves the states down
+        strip.background = element_rect(fill = "white") 
+  )
+
+```
+
+
+
 # Static maps
 Ideas for static maps of measures using facet plots
 
-## Population-based scenarios: Impervious surfaces vs. Tree (IRR)
+## IRR
+
+
+### Population-based scenarios: Impervious surfaces vs. Tree canopy
 ```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-zcta_ca_geo_simplified %>% 
-  left_join(hosp_irr_long, by = "zcta") %>% 
-  filter(scenario_type_3 =="Population-based") %>% #excluding these
+ggplot_facet_pb_imp_v_tree=function(df,measure_value, direction_value){
+  df %>% 
   ggplot()+
   geom_sf(
     aes(fill=value_cat),
     linewidth=.05)+
   scale_fill_viridis(
-    direction=-1, #flip direction for ratios
+    direction=direction_value, #flip direction for ratios
     discrete=TRUE,
-    name="IRR", #legend title
+    name=measure_value, #legend title
     na.value="grey")+
   #  theme_classic()+
   theme_minimal()+
@@ -140,15 +229,20 @@ zcta_ca_geo_simplified %>%
   facet_grid(
     cols=vars(scenario_intervention)
   )
+}
+zcta_ca_geo_simplified %>% 
+  left_join(hosp_irr_long, by = "zcta") %>% 
+  filter(scenario_type_3 =="Population-based") %>% 
+  ggplot_facet_pb_imp_v_tree(measure_value="IRR",direction_value=-1)
+ 
 ```
 
 
-## Proportionate Universalism and Targeted Scenarios (IRR)
-### Impervious Surfaces
-
+### Proportionate Universalism and Targeted Scenarios
+#### Impervious Surfaces
 
 ```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-ggplot_facet_each_int_type_irr=function(df){
+ggplot_facet_each_int_type=function(df, measure_value, direction_value){
   df %>% 
   filter(scenario_type_3 !="Population-based") %>% #excluding these
   ggplot()+
@@ -156,9 +250,9 @@ ggplot_facet_each_int_type_irr=function(df){
     aes(fill=value_cat),
     linewidth=.05)+
   scale_fill_viridis(
-    direction=-1, #flip direction for ratios
+    direction=direction_value, #flip direction for ratios
     discrete=TRUE,
-    name="IRR", #legend title
+    name=measure_value, #legend title
     na.value="grey")+
 #  theme_classic()+
   theme_minimal()+
@@ -179,21 +273,79 @@ ggplot_facet_each_int_type_irr=function(df){
 zcta_ca_geo_simplified %>% 
   left_join(hosp_irr_long, by = "zcta") %>% 
   filter(scenario_intervention=="Imp") %>% 
-  ggplot_facet_each_int_type_irr()
+  ggplot_facet_each_int_type(measure_value="IRR",direction_value=-1)
 
 ```
 
-### Tree
-
+#### Tree canopy
 
 ```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
 zcta_ca_geo_simplified %>% 
   left_join(hosp_irr_long, by = "zcta") %>% 
   filter(scenario_intervention=="Tree") %>% 
-  ggplot_facet_each_int_type_irr()
+  ggplot_facet_each_int_type(measure_value="IRR",direction_value=-1)
 ```
 
+## IRD
+
+### Population-based scenarios: Impervious surfaces vs. Tree canopy
+
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+zcta_ca_geo_simplified %>% 
+  left_join(hosp_ird_long, by = "zcta") %>% 
+  filter(scenario_type_3 =="Population-based") %>% 
+  ggplot_facet_pb_imp_v_tree(measure_value="IRD",direction_value=1)
+```
+
+#### Impervious surfaces
+
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+zcta_ca_geo_simplified %>% 
+  left_join(hosp_ird_long, by = "zcta") %>% 
+  filter(scenario_intervention=="Imp") %>% 
+  ggplot_facet_each_int_type(measure_value="IRD",direction_value=1)
+```
+
+#### Tree canopy
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+zcta_ca_geo_simplified %>% 
+  left_join(hosp_ird_long, by = "zcta") %>% 
+  filter(scenario_intervention=="Tree") %>% 
+  ggplot_facet_each_int_type(measure_value="IRD",direction_value=1)
+```
+
+
+## Percent Difference
+
+### Population-based scenarios: Impervious surfaces vs. Tree canopy
+
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+zcta_ca_geo_simplified %>% 
+  left_join(hosp_pd_long, by = "zcta") %>% 
+  filter(scenario_type_3 =="Population-based") %>% 
+  ggplot_facet_pb_imp_v_tree(measure_value="PD",direction_value=1)
+```
+
+#### Impervious surfaces
+
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+zcta_ca_geo_simplified %>% 
+  left_join(hosp_pd_long, by = "zcta") %>% 
+  filter(scenario_intervention=="Imp") %>% 
+  ggplot_facet_each_int_type(measure_value="PD",direction_value=1)
+```
+
+#### Tree canopy
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+zcta_ca_geo_simplified %>% 
+  left_join(hosp_pd_long, by = "zcta") %>% 
+  filter(scenario_intervention=="Tree") %>% 
+  ggplot_facet_each_int_type(measure_value="PD",direction_value=1)
+```
+
+
 # Interactive maps (IRR)
+A couple of ideas.
 
 ```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
 #Define mapview functions
