@@ -7,6 +7,7 @@ output:
     toc: true
     toc_float: true
     toc_depth: 4
+    number_sections: FALSE
 ---
 
 ```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
@@ -27,39 +28,6 @@ source(here("scripts","link-zcta-hosp-data.R"))#load linked files
 #heat-hosp-california/scripts/link-zcta-hosp-data.R
 ```
 
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-#Define mapview functions
-scenario_list = hosp_both_long %>% 
-  distinct(scenario) %>% 
-  pull()
-
-#scenario_list[1]
-#Set basemaps
-mapviewOptions(
-  basemaps = c("CartoDB.Positron","CartoDB.DarkMatter"))
-map_fun = function(df, ratio_diff_value, scenario_value){
-  #Feb 13 2023
-  # I was having issues getting mapview to properly display the legend,
-  #so I'm using tmap instead.
-
-  df_measures= df %>% 
-    filter(scenario==scenario_value) %>%
-    dplyr::select("zcta", "scenario", "ratio_diff", starts_with("value")) 
-  
-  #then link to sf and map
-  qtm_obj = zcta_ca_geo_simplified %>% 
-    left_join(df_measures, by = "zcta") %>% 
-    qtm(
-      fill.title = ratio_diff_value,
-      fill = "value_cat",
-      fill.palette = "plasma"
-    )
-    
-
-  return(qtm_obj)
-}
-
-```
 
 # Scenario definitions
 
@@ -105,207 +73,200 @@ map_fun = function(df, ratio_diff_value, scenario_value){
 
 
 
-# Explore distribution of ratios and differences
-```{r}
-hosp_both_long %>% 
-  filter(ratio_diff=="ratio") %>%
-  dplyr::select(value) %>% 
-  summary()
+# Explore distribution of IRR, IRD, and perc. diff
+Facet by type of intervention (impervious surfaces vs tree canopy) and by scenario type - Population-based, Proportionate Universalism, Targeted
+```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+facet_histogram_fun=function(df){
+  df %>% 
+      ggplot(aes(value))+
+      geom_histogram()+
+      facet_grid(
+        rows=vars(scenario_type_7_abbrev),
+        cols=vars(scenario_intervention)
+      )
+}
+hosp_all_long %>% 
+  filter(measure=="irr") %>%
+  facet_histogram_fun()+
+  xlab("IRR")
 
-hosp_both_long %>% 
-  filter(ratio_diff=="diff") %>%
-  dplyr::select(value) %>% 
-  summary()
+#All IRD
+hosp_all_long %>% 
+  filter(measure=="ird") %>%
+  facet_histogram_fun()+
+  xlab("IRD")
+
+#Exclude outliers
+hosp_all_long %>% 
+  filter(measure=="ird") %>%
+  filter(value<0.005) %>% 
+  facet_histogram_fun()+
+  xlab("IRD")
+
+
+hosp_all_long %>% 
+  filter(measure=="pd") %>%
+  facet_histogram_fun()+
+  xlab("PD")
 ```
 
-# Visualization of scenarios
-The following maps visualize, for each scenario, ratio-based and difference-based effect estimates on hospitalizations in California at the level of the zip-code tabulation area.
+# Static maps
+Ideas for static maps of measures using facet plots
 
-
-## Tree canopy
-### Population-based Scenario: Increase by 10% in all zip codes
-Ratio
+## Population-based scenarios: Impervious surfaces vs. Tree (IRR)
 ```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-tmap_mode("view")
-hosp_ratio_long %>% #note the aspatial data
-  map_fun(ratio_diff_value="ratio", scenario_value=scenario_list[1])
+zcta_ca_geo_simplified %>% 
+  left_join(hosp_irr_long, by = "zcta") %>% 
+  filter(scenario_type_3 =="Population-based") %>% #excluding these
+  ggplot()+
+  geom_sf(
+    aes(fill=value_cat),
+    linewidth=.05)+
+  scale_fill_viridis(
+    direction=-1, #flip direction for ratios
+    discrete=TRUE,
+    name="IRR", #legend title
+    na.value="grey")+
+  #  theme_classic()+
+  theme_minimal()+
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.line = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    axis.title = element_blank()
+  )+
+  facet_grid(
+    cols=vars(scenario_intervention)
+  )
 ```
 
-Difference
+
+## Proportionate Universalism and Targeted Scenarios (IRR)
+### Impervious Surfaces
+
+
 ```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_diff_long %>% 
-  map_fun(ratio_diff_value="diff", scenario_value=scenario_list[1])
+ggplot_facet_each_int_type_irr=function(df){
+  df %>% 
+  filter(scenario_type_3 !="Population-based") %>% #excluding these
+  ggplot()+
+  geom_sf(
+    aes(fill=value_cat),
+    linewidth=.05)+
+  scale_fill_viridis(
+    direction=-1, #flip direction for ratios
+    discrete=TRUE,
+    name="IRR", #legend title
+    na.value="grey")+
+#  theme_classic()+
+  theme_minimal()+
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.line = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    axis.title = element_blank()
+    )+
+  facet_grid(
+    cols=vars(scenario_sub_type),
+    rows=vars(scenario_type_3)
+  )
+  
+}
+zcta_ca_geo_simplified %>% 
+  left_join(hosp_irr_long, by = "zcta") %>% 
+  filter(scenario_intervention=="Imp") %>% 
+  ggplot_facet_each_int_type_irr()
+
 ```
 
-### Targeted Scenarios
-#### Scenario AII1: Increase by 10% in zip codes in the lowest 1/5th of current TC cover (i.e. <=20th pctile) 
-Ratio
+### Tree
+
+
 ```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_ratio_long %>% 
-  map_fun(ratio_diff_value="ratio", scenario_value=scenario_list[2])
+zcta_ca_geo_simplified %>% 
+  left_join(hosp_irr_long, by = "zcta") %>% 
+  filter(scenario_intervention=="Tree") %>% 
+  ggplot_facet_each_int_type_irr()
+```
+
+# Interactive maps (IRR)
+
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+#Define mapview functions
+scenario_list = hosp_all_long %>% 
+  distinct(scenario) %>% 
+  pull()
+
+#scenario_list[1]
+#Set basemaps
+mapviewOptions(
+  basemaps = c("CartoDB.Positron","CartoDB.DarkMatter"))
+map_fun = function(df, measure_value, scenario_value){
+  #Feb 13 2023
+  # I was having issues getting mapview to properly display the legend,
+  #so I'm using tmap instead.
+
+  df_measures= df %>% 
+    filter(scenario==scenario_value) %>%
+    dplyr::select("zcta", "scenario", "measure", starts_with("value")) 
+  
+  mapv_obj = zcta_ca_geo_simplified %>% 
+    left_join(df_measures, by = "zcta") %>% 
+    mapview(
+      lwd=.1,
+      layer.name=measure_value,
+      col.regions = viridis_pal(),
+      zcol = "value_cat")
+    
+
+  return(mapv_obj)
+}
 
 ```
 
-Difference
+## Population-based: Imp vs Tree (side by side)
 ```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_diff_long %>% 
-  map_fun(ratio_diff_value="diff", scenario_value=scenario_list[2])
+library(leaflet)
+library(leafsync)
+
+#tree
+irr_tree_pb =  hosp_irr_long %>% 
+  filter(scenario_intervention=="Tree") %>% 
+  filter(scenario_type_7=="Pop. based") %>% 
+  dplyr::select("zcta", starts_with("scenario"), "measure", starts_with("value")) 
+
+mv_irr_tree_pb= zcta_ca_geo_simplified %>% 
+  left_join(irr_tree_pb, by = "zcta") %>% 
+  mapview(
+    lwd=.1,
+    layer.name="IRR (tree)",
+    col.regions = viridis_pal(direction=-1),
+    zcol = "value_cat")
+
+#impervious surfaces
+irr_imp_pb =  hosp_irr_long %>% 
+  filter(scenario_intervention=="Imp") %>% 
+  filter(scenario_type_7=="Pop. based") %>% 
+  dplyr::select("zcta", starts_with("scenario"), "measure", starts_with("value")) 
+
+mv_irr_imp_pb= zcta_ca_geo_simplified %>% 
+  left_join(irr_imp_pb, by = "zcta") %>% 
+  mapview(
+    lwd=.1,
+    layer.name="IRR (imp. surface)",
+    col.regions = viridis_pal(direction=-1),
+    zcol = "value_cat")
+
+sync(mv_irr_imp_pb, mv_irr_tree_pb)
 ```
 
-#### Scenario AII2: Increase by 10% in zip codes in the highest 1/5th of the Social Vulnerability Index (i.e. >80th pctile)
-Ratio
+## Population-based: Imp vs Tree (separate layers)
+Please navigate to the layer icon under the Zoom icon and select the layer corresponding to each type of intervention.
 ```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_ratio_long %>% 
-  map_fun(ratio_diff_value="ratio", scenario_value=scenario_list[3])
+mv_irr_imp_pb+mv_irr_tree_pb
 ```
 
-Difference
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_diff_long %>% 
-  map_fun(ratio_diff_value="diff", scenario_value=scenario_list[3])
-```
-
-#### Scenario AII3: Increase by 10% in zip codes in the highest 1/5th of hospitalization burden (i.e. >80th pctile)
-Ratio
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_ratio_long %>% 
-  map_fun(ratio_diff_value="ratio", scenario_value=scenario_list[4])
-```
-
-Difference
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_diff_long %>% 
-  map_fun(ratio_diff_value="diff", scenario_value=scenario_list[4])
-```
-s
-### Proportinate-universalism Scenarios
-#### Scenario AIII1: Increase by 10% for bottom 1/5th of current TC cover… down to 2% for top 1/5th
-Ratio
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_ratio_long %>% 
-  map_fun(ratio_diff_value="ratio", scenario_value=scenario_list[5])
-```
-
-Difference
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_diff_long %>% 
-  map_fun(ratio_diff_value="diff", scenario_value=scenario_list[5])
-```
-
-#### Scenario AIII2: Increase by 10% for top 1/5th of SVI … down to 2% for bottom 1/5th
-Ratio
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_ratio_long %>% 
-  map_fun(ratio_diff_value="ratio", scenario_value=scenario_list[6])
-```
-
-Difference
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_diff_long %>% 
-  map_fun(ratio_diff_value="diff", scenario_value=scenario_list[6])
-```
-
-#### Scenario AIII3: Increase by 10% for top 1/5th of hospitalization burden … down to 2% for bottom 1/5th
-Ratio
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_ratio_long %>% 
-  map_fun(ratio_diff_value="ratio", scenario_value=scenario_list[7])
-```
-
-Difference
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_diff_long %>% 
-  map_fun(ratio_diff_value="diff", scenario_value=scenario_list[7])
-```
-
-## Impervious surface cover
-### Population-based Scenario: Decrease by 10% in all zip codes
-Ratio
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_ratio_long %>% 
-  map_fun(ratio_diff_value="ratio", scenario_value=scenario_list[8])
-```
-
-Difference
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_diff_long %>% 
-  map_fun(ratio_diff_value="diff", scenario_value=scenario_list[8])
-```
-
-### Targeted Scenarios
-#### Scenario BII1: Decrease by 10% in zip codes in the highest 1/5th of current imperv cover (i.e. >80th pctile)
-Ratio
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_ratio_long %>% 
-  map_fun(ratio_diff_value="ratio", scenario_value=scenario_list[9])
-```
-
-Difference
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_diff_long %>% 
-  map_fun(ratio_diff_value="diff", scenario_value=scenario_list[9])
-```
-
-#### Scenario BII2: Decrease by 10% in zip codes in the highest 1/5th of the Social Vulnerability Index (i.e. >80th pctile)
-Ratio
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_ratio_long %>% 
-  map_fun(ratio_diff_value="ratio", scenario_value=scenario_list[10])
-```
-
-Difference
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_diff_long %>% 
-  map_fun(ratio_diff_value="diff", scenario_value=scenario_list[10])
-```
-
-#### Scenario BII3: Decrease by 10% in zip codes in the highest 1/5th of hospitalization burden (i.e. >80th pctile)
-Ratio
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_ratio_long %>% 
-  map_fun(ratio_diff_value="ratio", scenario_value=scenario_list[11])
-```
-
-Difference
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_diff_long %>% 
-  map_fun(ratio_diff_value="diff", scenario_value=scenario_list[11])
-```
-
-### Proportionate-universalism
-#### Scenario BIII1: Decrease by 10% for top 1/5th of current imperv cover … down to 2% for bottom 1/5th
-Ratio
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_ratio_long %>% 
-  map_fun(ratio_diff_value="ratio", scenario_value=scenario_list[12])
-```
-
-Difference
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_diff_long %>% 
-  map_fun(ratio_diff_value="diff", scenario_value=scenario_list[12])
-```
-
-#### Scenario BIII2: Decrease by 10% for top 1/5th of SVI … down to 2% for bottom 1/5th 
-Ratio
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_ratio_long %>% 
-  map_fun(ratio_diff_value="ratio", scenario_value=scenario_list[13])
-```
-
-Difference
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_diff_long %>% map_fun(ratio_diff_value="diff", scenario_value=scenario_list[13])
-```
-
-#### Scenario BIII3: Decrease by 10% for top 1/5th of hospitalization burden … down to 2% for bottom 1/5th
-Ratio
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_ratio_long %>% 
-  map_fun(ratio_diff_value="ratio", scenario_value=scenario_list[14])
-```
-
-Difference
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-hosp_diff_long %>% map_fun(ratio_diff_value="diff", scenario_value=scenario_list[14])
-```
