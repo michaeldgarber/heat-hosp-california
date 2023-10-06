@@ -89,19 +89,39 @@ hosp_all_long = hosp_all %>%
     grepl("I",scenario)~"PB"
   ),
   
+  #are there are negative IRDs?
+  ird_neg=case_when(
+    measure=="ird" & value <0~1,
+    TRUE~0),
+  
+  ird_miss=case_when(
+    measure=="ird" & is.na(value)~1,
+    TRUE~0
+  )
   
   )
 
-hosp_all_long
+
 table(hosp_all_long$scenario)
 table(hosp_all_long$scenario_intervention)
 table(hosp_all_long$scenario_type_3)
 table(hosp_all_long$scenario_type_7)
 table(hosp_all_long$scenario_sub_type)
-
+table(hosp_all_long$measure)
 setwd(here("data-processed"))
 save(hosp_all_long, file = "hosp_all_long.RData")
 table(hosp_all_long$scenario)
+
+#How many missings from the IRD?
+hosp_all_long %>% 
+  dplyr::filter(measure=="ird") %>% 
+  mutate(
+    missing=case_when(is.na(value) ~1,
+         TRUE~0)
+  ) %>% 
+  group_by(missing) %>% 
+  summarise(n=n())
+
 #Histograms to examine distribution of each-----
 table(hosp_all_long$scenario)
 hosp_all_long %>% 
