@@ -13,6 +13,7 @@
 library(here)
 library(tidyverse)
 library(mapview)
+library(sf)
 setwd(here("data-processed"))
 load("zcta_ca_geo_simplified.RData")
 
@@ -30,6 +31,7 @@ source(here("scripts", "explore-model-results.R"))
 pred_values_baseline
 #Note we have a field for zcta and a field for the predicted rate differences
 #corresponding to each model - impervious surface and tree canopy
+
 
 # Histograms of unweighted effect estimates for each model--------
 #summarize their distribution with histograms
@@ -74,6 +76,13 @@ zcta_ca_geo_simplified_w_pred_values %>%
 summary(zcta_ca_geo_simplified_w_pred_values$pop)
 #Okay, there are some zips with zero population. We can remove
 #those before calculating the weights
+
+#scatterplot of pop vs predicted value
+zcta_ca_geo_simplified_w_pred_values %>% 
+  ggplot()+
+  geom_point(aes(x=pop,y=ImpervSurf_Y))
+
+
 zcta_ca_pop_calc_weights=zcta_ca_geo_simplified_w_pred_values %>% 
   st_set_geometry(NULL) %>% #remove the geometry
   as_tibble() %>% #make sure it's a tibble
@@ -104,6 +113,7 @@ zcta_ca_pop_calc_weights %>% View()
 #Check out the distribution of the weights
 #Okay, so the min value is actually 1, which means that each zip code's weight
 #will actually simply be its population value.
+summary(zcta_ca_pop_calc_weights$pop_min_non_zero)
 summary(zcta_ca_pop_calc_weights$pop_wt)
 summary(zcta_ca_pop_calc_weights$pop_wt_int)
 
@@ -120,10 +130,12 @@ zcta_ca_pop_calc_weights %>%
 zcta_ca_pop_weighted=zcta_ca_pop_calc_weights %>% 
   uncount(pop_wt_int, .remove=FALSE)
 
-#This new dataset will have lot and lots of rows.
-#how many?
+#This new dataset will have lot and lots of rows, as higher-population
+#zip codes will repeat lots and lots of times
+
+#how many rows?
 nrow(zcta_ca_pop_weighted)
-#how many in the original?
+#how many rows in the original?
 nrow(zcta_ca_pop_calc_weights)
 
 # Fit a histogram in the weighted data---------
@@ -145,4 +157,4 @@ zcta_ca_pop_weighted %>%
 summary(zcta_ca_pop_weighted$TreeCanopy_Y_per_100_days)
 summary(zcta_ca_pop_weighted$ImpervSurf_Y_per_100_days)
 
-#still zero on average...
+#still zero on average.
