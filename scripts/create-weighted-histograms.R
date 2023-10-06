@@ -78,9 +78,18 @@ summary(zcta_ca_geo_simplified_w_pred_values$pop)
 #those before calculating the weights
 
 #scatterplot of pop vs predicted value
+#If the weighting were to have an impact on the results,
+#we would expect the predicted value to rise with increasing population
+
+#impervious surface predicted effects
 zcta_ca_geo_simplified_w_pred_values %>% 
   ggplot()+
   geom_point(aes(x=pop,y=ImpervSurf_Y))
+
+#tree canopy predicted effects
+zcta_ca_geo_simplified_w_pred_values %>% 
+  ggplot()+
+  geom_point(aes(x=pop,y=TreeCanopy_Y))
 
 
 zcta_ca_pop_calc_weights=zcta_ca_geo_simplified_w_pred_values %>% 
@@ -108,14 +117,13 @@ zcta_ca_pop_calc_weights=zcta_ca_geo_simplified_w_pred_values %>%
     pop_wt_int=as.integer(pop_wt)
   )
 
-zcta_ca_pop_calc_weights %>% View()
 
 #Check out the distribution of the weights
-#Okay, so the min value is actually 1, which means that each zip code's weight
-#will actually simply be its population value.
 summary(zcta_ca_pop_calc_weights$pop_min_non_zero)
 summary(zcta_ca_pop_calc_weights$pop_wt)
 summary(zcta_ca_pop_calc_weights$pop_wt_int)
+
+#The min value is 5
 
 
 zcta_ca_pop_calc_weights %>% 
