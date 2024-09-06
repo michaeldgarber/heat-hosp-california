@@ -1,7 +1,7 @@
 #Link California ZCTAs with Maren's data
 library(here)
 library(tidyverse)
-source(here("scripts", "read-ratios-diffs-maren.R"))
+source(here("scripts", "read-attrib-hosps-ratios-diffs.R.R"))
 library(viridis)
 library(sf)
 library(mapview)
@@ -29,3 +29,5 @@ hosp_irr_long_geo = hosp_irr_long %>%
 hosp_ird_long_geo = hosp_ird_long %>% 
   left_join(zcta_ca_geo_simplified, by = "zcta") %>% 
   st_as_sf()
+
+# Link

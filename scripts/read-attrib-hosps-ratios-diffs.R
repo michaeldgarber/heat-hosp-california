@@ -301,3 +301,17 @@ hosp_ird_long %>%
     cols=vars(scenario_intervention)
   )
 
+# Read in data Kristen sent August 2024----
+#Double checking Maren's work.
+# She said she used the 1-day 95th percentile,
+#which is this variable: max95_1
+setwd(here("data-input","data-kristen-sent-August-2024"))
+attrib_hosps_by_zip=read_csv("joined_abs.csv") %>% 
+  mutate(zcta = ZCTA5CE10) %>% 
+  dplyr::select(
+    zcta, max95_1 #this is the var Maren's using
+  )
+
+attrib_hosps_by_zip
+
+
