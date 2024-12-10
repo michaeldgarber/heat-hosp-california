@@ -56,7 +56,7 @@ qtm_irr_imp_pb= zcta_ca_geo_simplified %>%
 qtm_irr_imp_pb
 ```
 
-### Prop. Univ.
+### Proportionate Universalism 1
 ```{r}
 #| echo: false
 #| warning: false
@@ -77,3 +77,25 @@ qtm_irr_imp_pu1= zcta_ca_geo_simplified %>%
 qtm_irr_imp_pu1
 ```
 
+### Proportionate Universalism 2
+```{r}
+#| echo: false
+#| warning: false
+#impervious surfaces
+irr_imp_pu2 =  irr_long %>% 
+  filter(scenario_intervention=="Imp") %>% 
+  filter(scenario_type_7=="Prop. Univ. 2") %>% 
+  dplyr::select("zcta", starts_with("scenario"), "measure", starts_with("value")) 
+
+qtm_irr_imp_pu2= zcta_ca_geo_simplified %>% 
+  left_join(irr_imp_pu2, by = "zcta") %>% 
+  #remove everything without a geometry
+  filter(is.na(value)==F) %>% 
+  qtm("value_cut_n",
+    lines.lwd = .1,
+      fill.palette=pal_rdylbu_rev)
+
+qtm_irr_imp_pu2
+```
+
+## Tree canopy
