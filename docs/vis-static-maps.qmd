@@ -1,12 +1,17 @@
 ---
-title: "Static maps"
-author: "Michael D Garber"
+title: "vis-static-maps"
 date: "`r Sys.Date()`"
-output: html_document
+format:
+  html:
+    toc: true
+    toc_float: true
 ---
 
+```{r}
+#| echo: false
+#| warning: false
+#| error: false
 
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
 library(readr)
 library(readxl)
 library(here)
@@ -18,13 +23,12 @@ setwd(here("data-processed"))
 load("zcta_ca_geo_simplified.RData")
 ```
 
-# Static maps
-
-
 ## IRR
 
 ### Population-based scenarios: Impervious surfaces vs. Tree canopy
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+```{r}
+#| echo: false
+#| warning: false
 ggplot_facet_pb_imp_v_tree=function(df,measure_value, direction_value){
   df %>% 
   ggplot()+
@@ -69,7 +73,9 @@ gg_irr_pb
 ### Proportionate Universalism and Targeted Scenarios
 #### Impervious Surfaces
 
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+```{r}
+#| echo: false
+#| warning: false
 ggplot_facet_each_int_type=function(df, measure_value, direction_value){
   df %>% 
   filter(scenario_type_3 !="Population-based") %>% #excluding these
@@ -116,7 +122,9 @@ zcta_ca_geo_simplified %>%
 
 #### Tree canopy
 
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+```{r}
+#| echo: false
+#| warning: false
 zcta_ca_geo_simplified %>% 
   left_join(irr_long, by = "zcta") %>% 
   filter(scenario_intervention=="Tree") %>% 
@@ -127,16 +135,21 @@ zcta_ca_geo_simplified %>%
 
 ### Population-based scenarios: Impervious surfaces vs. Tree canopy
 
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+```{r}
+#| echo: false
+#| warning: false
 zcta_ca_geo_simplified %>% 
   left_join(ird_long, by = "zcta") %>% 
   filter(scenario_type_3 =="Population-based") %>% 
   ggplot_facet_pb_imp_v_tree(measure_value="IRD",direction_value=1)
 ```
 
+### Proportionate Universalism and Targeted Scenarios
 #### Impervious surfaces
 
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+```{r}
+#| echo: false
+#| warning: false
 zcta_ca_geo_simplified %>% 
   left_join(ird_long, by = "zcta") %>% 
   filter(scenario_intervention=="Imp") %>% 
@@ -144,7 +157,9 @@ zcta_ca_geo_simplified %>%
 ```
 
 #### Tree canopy
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+```{r}
+#| echo: false
+#| warning: false
 zcta_ca_geo_simplified %>% 
   left_join(ird_long, by = "zcta") %>% 
   filter(scenario_intervention=="Tree") %>% 
@@ -156,16 +171,21 @@ zcta_ca_geo_simplified %>%
 
 ### Population-based scenarios: Impervious surfaces vs. Tree canopy
 
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+```{r}
+#| echo: false
+#| warning: false
 zcta_ca_geo_simplified %>% 
   left_join(n_cases_diff_long, by = "zcta") %>% 
   filter(scenario_type_3 =="Population-based") %>% 
   ggplot_facet_pb_imp_v_tree(measure_value="n_cases_diff",direction_value=1)
 ```
 
+### Proportionate Universalism and Targeted Scenarios
 #### Impervious surfaces
 
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+```{r}
+#| echo: false
+#| warning: false
 zcta_ca_geo_simplified %>% 
   left_join(n_cases_diff_long, by = "zcta") %>% 
   filter(scenario_intervention=="Imp") %>% 
@@ -173,7 +193,9 @@ zcta_ca_geo_simplified %>%
 ```
 
 #### Tree canopy
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+```{r}
+#| echo: false
+#| warning: false
 zcta_ca_geo_simplified %>% 
   left_join(n_cases_diff_long, by = "zcta") %>% 
   filter(scenario_intervention=="Tree") %>% 

@@ -231,9 +231,7 @@ irr_long = hosp_all_long %>%
     
     #using santoku to chop equally
     #also recall that mapview doesn't like factors
-    value_cut_n=santoku::chop_equally(value,groups=5),
-    
-    value_cut_n_char=as.character(value_cut_n)
+    value_cat=santoku::chop_equally(value,groups=5)
   )
 
 #some are exactly one
@@ -243,32 +241,33 @@ irr_long %>%
   group_by(scenario_intervention,scenario_type_3,scenario_type_7) %>% 
   summarise(n=n())
 
-class(irr_long$value_cut_n)
+class(irr_long$value_cat)
 summary(irr_long$value)
-table(irr_long$value_cut_n_char)
+table(irr_long$value_cat)
 
 
-remotes::install_github("r-spatial/mapview")
+
 
 ## ird------
 ird_long = hosp_all_long %>% 
   filter(measure=="ird") %>% 
   mutate(
-    value_cat = 
-      cut(
-        #see histograms above 
-        value,
-        include.lowest=TRUE,
-        breaks=c(
-          0,
-#          1e-9,
-          1e-8,
-          1e-7,
-          1e-6,
-          max(value,na.rm=TRUE)
-        )),
-    #mapview doesn't like factors, so try
-    value_cat_char = as.character(value_cat)
+    value_cat=santoku::chop_equally(value,groups=5)
+#     value_cat = 
+#       cut(
+#         #see histograms above 
+#         value,
+#         include.lowest=TRUE,
+#         breaks=c(
+#           0,
+# #          1e-9,
+#           1e-8,
+#           1e-7,
+#           1e-6,
+#           max(value,na.rm=TRUE)
+#         )),
+#     #mapview doesn't like factors, so try
+#     value_cat_char = as.character(value_cat)
   )
 
 
@@ -296,17 +295,18 @@ ird_long %>%
 n_cases_diff_long = hosp_all_long %>% 
   filter(measure=="n_cases_diff") %>% 
   mutate(
-    value_cat = 
-      cut(
-        #see histograms above 
-        value,
-        include.lowest=TRUE,
-        breaks=c(
-          min(value,na.rm=TRUE),
-          1,5,10,20,
-          max(value,na.rm=TRUE)
-        )),
-    value_cat_char = as.character(value_cat)
+    value_cat=santoku::chop_equally(value,groups=5)
+    # value_cat = 
+    #   cut(
+    #     #see histograms above 
+    #     value,
+    #     include.lowest=TRUE,
+    #     breaks=c(
+    #       min(value,na.rm=TRUE),
+    #       1,5,10,20,
+    #       max(value,na.rm=TRUE)
+    #     )),
+    # value_cat_char = as.character(value_cat)
   )
 
 table(n_cases_diff_long$value_cat)
