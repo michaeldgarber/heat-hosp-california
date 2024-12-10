@@ -24,11 +24,11 @@ zcta_usa_wrangle = zcta_usa %>%
   mutate( 
     zcta = as.numeric(GEOID), 
     #generate random variables to play with
-    A = rnorm(n=n(), mean=3, sd=3), 
-    B = rnorm(n=n(), mean=10, sd=10),
-    C = rnorm(n=n(), mean=20, sd=20)
+    # A = rnorm(n=n(), mean=3, sd=3), 
+    # B = rnorm(n=n(), mean=10, sd=10),
+    # C = rnorm(n=n(), mean=20, sd=20)
   ) %>% 
-  dplyr::select(starts_with("zcta"), pop, A, B, C)
+  dplyr::select(starts_with("zcta"), pop)
 
 zcta_usa_wrangle
 
@@ -52,7 +52,8 @@ zcta_ca_geo = zcta_usa_wrangle %>%
 
 #try simplifying the sf objects...
 #may reduce the size of the data for eventual mapview rendering
-zcta_ca_geo_simplified = zcta_ca_geo %>% 
+zcta_ca_geo_simplified = zcta_ca_geo %>%
+#  remove the vars not needed
   st_simplify(dTolerance = 500)
 
 object.size(zcta_ca_geo) 
@@ -92,4 +93,25 @@ zcta_ca_geo %>%
 zcta_ca_geo %>% 
   mapview(zcol = "C",
           layer.name = "C")
+
+# Load rural urban commuting codes----
+library(here)
+setwd(here("data-input","zcta-ruca"))
+zcta_ruca2010=read_xlsx("RUCA2010zipcode.xlsx", sheet="Data") %>% 
+  mutate(
+    zcta=as.integer(ZIP_CODE),
+    ruca_cat=cut(RUCA1,breaks=c(0,3,6,9,10))
+    ) %>% 
+  dplyr::select(zcta,STATE,ruca_cat)
+
+zcta_ruca2010
+setwd(here("data-processed"))
+save(zcta_ruca2010,file="zcta_ruca2010.RData")
+
+zcta_ruca2010 %>% 
+  group_by(ruca_cat) %>% 
+  summarise(n=n())
+
+
+
 

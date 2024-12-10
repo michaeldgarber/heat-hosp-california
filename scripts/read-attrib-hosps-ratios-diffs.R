@@ -1,5 +1,7 @@
 #This script reads in Maren's data
-#Revised May 2nd based on data that Maren sent me March 24th
+
+#Revising December 10, 2024 with data she updated more recently
+#that just reflects metropolitan zip codes
 
 library(readr)
 library(readxl)
@@ -9,32 +11,42 @@ setwd(here("data-processed"))
 load("zcta_ca_list.RData")
 
 # Read data------
-zcta_ca_list
-setwd(here("data-input","measures-most-recent"))
 #Maren revised filename Mar 3, 2023 from HospRatio.csv to StandardizedHosp.csv
 #incidence rate ratio
-hosp_irr = read_csv("IRR_Mar24.csv") %>% 
+
+#Dec 10, 2024
+#I'm renaming the files Maren sent to simply be called their measure
+#name
+
+zcta_ca_list
+setwd(here("data-input","measures"))
+irr = read_csv("irr.csv") %>% 
   #Rename from ZIP to zcta for easy linking with other data
   rename(zcta = ZIP) %>% 
   mutate(measure = "irr")
 
-hosp_irr
+irr
 
 #incidence rate difference
-hosp_ird = read_csv("IRD_Mar24.csv") %>% 
+setwd(here("data-input","measures"))
+ird = read_csv("ird.csv") %>% 
   rename(zcta = ZIP) %>% 
   mutate(measure = "ird")
-hosp_ird
+ird
 
-#percent difference
-hosp_pd = read_csv("PctDif_Mar24.csv") %>% 
+#number of prevented cases (not per population)
+#Maren calls this absolute benefit
+#call it n_cases_diff to emphasize that it's the number of prevented (or caused)
+#cases not divided by population
+setwd(here("data-input","measures"))
+n_cases_diff=read_csv("n_cases_diff.csv") %>% 
   rename(zcta = ZIP) %>% 
-  mutate(measure = "pd")
-hosp_pd
+  mutate(measure = "n_cases_diff")
 
-hosp_all = hosp_irr %>% 
-  bind_rows(hosp_ird) %>% 
-  bind_rows(hosp_pd)
+nrow(n_cases_diff)
+hosp_all = irr %>% 
+  bind_rows(ird) %>% 
+  bind_rows(n_cases_diff)
 
 setwd(here("data-processed"))
 save(hosp_all, file = "hosp_all.RData")
@@ -122,6 +134,8 @@ hosp_all_long %>%
   group_by(missing) %>% 
   summarise(n=n())
 
+
+
 #Histograms to examine distribution of each-----
 table(hosp_all_long$scenario)
 hosp_all_long %>% 
@@ -182,13 +196,13 @@ hosp_all_long %>%
   summary()
 
 hosp_all_long %>% 
-  filter(measure=="pd") %>% 
+  filter(measure=="n_cases_diff") %>% 
   ggplot(aes(value))+
   geom_histogram()
 
 
 hosp_all_long %>% 
-  filter(measure=="pd") %>% 
+  filter(measure=="n_cases_diff") %>% 
   dplyr::select(value) %>% 
   summary()
 
@@ -203,26 +217,41 @@ lookup_scenario
 # Create categories for each measure--------
 #Limit to about 5 bins
 ## irr-------
-hosp_irr_long = hosp_all_long %>% 
+
+1/1.05
+1/1.1
+1/1.2
+1/1.3
+#install.packages("santoku")
+library(santoku)#alternatives to cut_number
+irr_long = hosp_all_long %>% 
   filter(measure=="irr") %>% 
   mutate(
-    #see histogram for values
-    value_cat = 
-      cut(
-          value,
-          include.lowest=TRUE,
-          breaks=c(0, 0.66, .9, .95, 0.975, 1)
-          ),
-    #mapview doesn't like factors, so try
-    value_cat_char = as.character(value_cat)
+
+    
+    #using santoku to chop equally
+    #also recall that mapview doesn't like factors
+    value_cut_n=santoku::chop_equally(value,groups=5),
+    
+    value_cut_n_char=as.character(value_cut_n)
   )
 
+#some are exactly one
+irr_long %>% 
+  filter(value>=1) %>% 
+  filter(value<=1) %>% 
+  group_by(scenario_intervention,scenario_type_3,scenario_type_7) %>% 
+  summarise(n=n())
 
-table(hosp_irr_long$value_cat)
-length(table(hosp_irr_long$value_cat))
+class(irr_long$value_cut_n)
+summary(irr_long$value)
+table(irr_long$value_cut_n_char)
+
+
+remotes::install_github("r-spatial/mapview")
 
 ## ird------
-hosp_ird_long = hosp_all_long %>% 
+ird_long = hosp_all_long %>% 
   filter(measure=="ird") %>% 
   mutate(
     value_cat = 
@@ -231,24 +260,41 @@ hosp_ird_long = hosp_all_long %>%
         value,
         include.lowest=TRUE,
         breaks=c(
-          0, 
-          0.00001,
-          0.0001,
-#          0.0005,
-          0.001,
-          0.003,
+          0,
+#          1e-9,
+          1e-8,
+          1e-7,
+          1e-6,
           max(value,na.rm=TRUE)
         )),
     #mapview doesn't like factors, so try
     value_cat_char = as.character(value_cat)
   )
 
-table(hosp_ird_long$value_cat)
-length(table(hosp_ird_long$value_cat))
 
-## pd--------
-hosp_pd_long = hosp_all_long %>% 
-  filter(measure=="pd") %>% 
+0.000036500
+0.000015500
+1e-7
+.000000005
+table(ird_long$value_cat)
+table(ird_long$scenario)
+table(ird_long$scenario_intervention)
+table(ird_long$scenario_type_3)
+table(ird_long$scenario_type_7)
+summary(ird_long$value)
+ird_long %>% 
+  filter(value<.00000005) %>% 
+  ggplot(aes(x=value))+
+  geom_histogram()
+ird_long %>% 
+  filter(value<.000000005) %>% 
+  ggplot(aes(x=value))+
+  geom_histogram()
+
+
+## n_cases_diff--------
+n_cases_diff_long = hosp_all_long %>% 
+  filter(measure=="n_cases_diff") %>% 
   mutate(
     value_cat = 
       cut(
@@ -263,12 +309,13 @@ hosp_pd_long = hosp_all_long %>%
     value_cat_char = as.character(value_cat)
   )
 
-table(hosp_pd_long$value_cat)
-length(table(hosp_pd_long$value_cat))
+table(n_cases_diff_long$value_cat)
+summary(n_cases_diff_long$value)
+length(table(n_cases_diff_long$value_cat))
 
 # column charts - facet by scenario------
 
-hosp_irr_long %>% 
+irr_long %>% 
   group_by(measure, scenario) %>% 
   summarise(irr_mean=mean(value,na.rm=TRUE)) %>% 
   ungroup() %>% 
@@ -289,8 +336,8 @@ hosp_irr_long %>%
         strip.background = element_rect(fill = "white") 
   )
 
-names(hosp_ird_long)
-hosp_ird_long %>% 
+names(ird_long)
+ird_long %>% 
   group_by(measure, scenario) %>% 
   summarise(ird_mean=mean(value,na.rm=TRUE)) %>% 
   ungroup() %>% 
