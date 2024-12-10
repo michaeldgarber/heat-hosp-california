@@ -1,0 +1,79 @@
+---
+title: "Hospitalization scenarios: interactive maps"
+format:
+  html:
+    toc: true
+    toc_float: true
+---
+
+```{r}
+#| echo: false
+#| warning: false
+library(here)
+library(mapview) #make sure mapview is github version
+library(tidyverse)
+library(viridis)
+library(viridisLite)
+library(leaflet)
+library(leaflet.extras)
+library(tmap)
+library(RColorBrewer)
+source(here("scripts","read-attrib-hosps-ratios-diffs.R"))#load measures
+setwd(here("data-processed"))
+load("zcta_ca_geo_simplified.RData")
+```
+
+# IRR
+## Impervious surfaces
+### Population-based
+```{r}
+#| echo: false
+#| warning: false
+
+#define some color palettes that flip at 1
+pal_rdylgn5=RColorBrewer::brewer.pal(n=5,"RdYlGn")
+pal_rdylgn5_rev=rev(pal_rdylgn5)
+
+pal_rdylbu=RColorBrewer::brewer.pal(n=5,"RdYlBu")
+pal_rdylbu_rev=rev(pal_rdylbu)
+library(shades)
+#impervious surfaces
+irr_imp_pb =  irr_long %>% 
+  filter(scenario_intervention=="Imp") %>% 
+  filter(scenario_type_7=="Pop. based") %>% 
+  dplyr::select("zcta", starts_with("scenario"), "measure", starts_with("value")) 
+
+tmap_mode("view") #run again just in case it was changed above.
+
+#see below for defining palette
+#https://www.rdocumentation.org/packages/tmap/versions/3.3-4/topics/qtm
+qtm_irr_imp_pb= zcta_ca_geo_simplified %>% 
+  left_join(irr_imp_pb, by = "zcta") %>% 
+  #remove everything without a geometry
+  filter(is.na(value)==F) %>% 
+  qtm("value_cut_n",fill.palette=pal_rdylbu_rev)
+
+qtm_irr_imp_pb
+```
+
+### Prop. Univ.
+```{r}
+#| echo: false
+#| warning: false
+#impervious surfaces
+irr_imp_pu1 =  irr_long %>% 
+  filter(scenario_intervention=="Imp") %>% 
+  filter(scenario_type_7=="Prop. Univ. 1") %>% 
+  dplyr::select("zcta", starts_with("scenario"), "measure", starts_with("value")) 
+
+qtm_irr_imp_pu1= zcta_ca_geo_simplified %>% 
+  left_join(irr_imp_pu1, by = "zcta") %>% 
+  #remove everything without a geometry
+  filter(is.na(value)==F) %>% 
+  qtm("value_cut_n",
+      lines.lwd = .1,
+      fill.palette=pal_rdylbu_rev)
+
+qtm_irr_imp_pu1
+```
+
