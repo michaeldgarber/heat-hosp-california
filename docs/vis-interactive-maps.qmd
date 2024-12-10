@@ -51,7 +51,9 @@ qtm_irr_imp_pb= zcta_ca_geo_simplified %>%
   left_join(irr_imp_pb, by = "zcta") %>% 
   #remove everything without a geometry
   filter(is.na(value)==F) %>% 
-  qtm("value_cut_n",fill.palette=pal_rdylbu_rev)
+  qtm("value_cut_n",
+            lines.lwd = .001,
+      fill.palette=pal_rdylbu_rev)
 
 qtm_irr_imp_pb
 ```
@@ -71,7 +73,7 @@ qtm_irr_imp_pu1= zcta_ca_geo_simplified %>%
   #remove everything without a geometry
   filter(is.na(value)==F) %>% 
   qtm("value_cut_n",
-      lines.lwd = .1,
+      lines.lwd = .001,
       fill.palette=pal_rdylbu_rev)
 
 qtm_irr_imp_pu1
@@ -82,6 +84,7 @@ qtm_irr_imp_pu1
 #| echo: false
 #| warning: false
 #impervious surfaces
+#table(irr_long$scenario_type_7)
 irr_imp_pu2 =  irr_long %>% 
   filter(scenario_intervention=="Imp") %>% 
   filter(scenario_type_7=="Prop. Univ. 2") %>% 
@@ -92,10 +95,32 @@ qtm_irr_imp_pu2= zcta_ca_geo_simplified %>%
   #remove everything without a geometry
   filter(is.na(value)==F) %>% 
   qtm("value_cut_n",
-    lines.lwd = .1,
+      lines.lwd = .001,
       fill.palette=pal_rdylbu_rev)
 
 qtm_irr_imp_pu2
+```
+
+### Proportionate Universalism 3
+```{r}
+#| echo: false
+#| warning: false
+#impervious surfaces
+#table(irr_long$scenario_type_7)
+irr_imp_pu3 =  irr_long %>% 
+  filter(scenario_intervention=="Imp") %>% 
+  filter(scenario_type_7=="Prop. Univ. 3") %>% 
+  dplyr::select("zcta", starts_with("scenario"), "measure", starts_with("value")) 
+
+qtm_irr_imp_pu3= zcta_ca_geo_simplified %>% 
+  left_join(irr_imp_pu3, by = "zcta") %>% 
+  #remove everything without a geometry
+  filter(is.na(value)==F) %>% 
+  qtm("value_cut_n",
+      lines.lwd = .001,
+      fill.palette=pal_rdylbu_rev)
+
+qtm_irr_imp_pu3
 ```
 
 ## Tree canopy
