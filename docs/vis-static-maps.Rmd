@@ -1,17 +1,26 @@
 ---
-title: "vis-static-maps"
+title: "Static maps"
 author: "Michael D Garber"
 date: "`r Sys.Date()`"
 output: html_document
 ---
 
 Copied from heat-hosp-california/docs/vis-definitions-plots.Rmd
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+library(readr)
+library(readxl)
+library(here)
+library(tidyverse)
+library(viridis)
+library(sf)
+source(here("scripts","read-attrib-hosps-ratios-diffs.R"))#load measures
+setwd(here("data-processed"))
+load("zcta_ca_geo_simplified.RData")
+```
 
 # Static maps
 Ideas for static maps of measures using facet plots
-
 ## IRR
-
 
 ### Population-based scenarios: Impervious surfaces vs. Tree canopy
 ```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
@@ -41,11 +50,12 @@ ggplot_facet_pb_imp_v_tree=function(df,measure_value, direction_value){
   )
 }
 
-zcta_ca_geo_simplified %>% 
+gg_irr_pb=zcta_ca_geo_simplified %>% 
   left_join(irr_long, by = "zcta") %>% 
   filter(scenario_type_3 =="Population-based") %>% 
   ggplot_facet_pb_imp_v_tree(measure_value="IRR",direction_value=-1)
- 
+
+gg_irr_pb
 ```
 
 
@@ -81,10 +91,12 @@ ggplot_facet_each_int_type=function(df, measure_value, direction_value){
   )
   
 }
+
 zcta_ca_geo_simplified %>% 
   left_join(irr_long, by = "zcta") %>% 
   filter(scenario_intervention=="Imp") %>% 
   ggplot_facet_each_int_type(measure_value="IRR",direction_value=-1)
+
 
 ```
 
@@ -126,13 +138,14 @@ zcta_ca_geo_simplified %>%
 ```
 
 
-## Percent Difference
+## Difference, number of cases
 
 ### Population-based scenarios: Impervious surfaces vs. Tree canopy
 
 ```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+names(n_cases_diff_long)
 zcta_ca_geo_simplified %>% 
-  left_join(hosp_pd_long, by = "zcta") %>% 
+  left_join(n_cases_diff_long, by = "zcta") %>% 
   filter(scenario_type_3 =="Population-based") %>% 
   ggplot_facet_pb_imp_v_tree(measure_value="n_cases_diff",direction_value=1)
 ```
@@ -141,7 +154,7 @@ zcta_ca_geo_simplified %>%
 
 ```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
 zcta_ca_geo_simplified %>% 
-  left_join(hosp_pd_long, by = "zcta") %>% 
+  left_join(n_cases_diff_long, by = "zcta") %>% 
   filter(scenario_intervention=="Imp") %>% 
   ggplot_facet_each_int_type(measure_value="n_cases_diff",direction_value=1)
 ```
@@ -149,7 +162,7 @@ zcta_ca_geo_simplified %>%
 #### Tree canopy
 ```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
 zcta_ca_geo_simplified %>% 
-  left_join(hosp_pd_long, by = "zcta") %>% 
+  left_join(n_cases_diff_long, by = "zcta") %>% 
   filter(scenario_intervention=="Tree") %>% 
   ggplot_facet_each_int_type(measure_value="n_cases_diff",direction_value=1)
 ```

@@ -51,7 +51,7 @@ qtm_irr_imp_pb= zcta_ca_geo_simplified %>%
   left_join(irr_imp_pb, by = "zcta") %>% 
   #remove everything without a geometry
   filter(is.na(value)==F) %>% 
-  qtm("value_cut_n",
+  qtm("value_cat",
             lines.lwd = .001,
       fill.palette=pal_rdylbu_rev)
 
@@ -72,7 +72,7 @@ qtm_irr_imp_pu1= zcta_ca_geo_simplified %>%
   left_join(irr_imp_pu1, by = "zcta") %>% 
   #remove everything without a geometry
   filter(is.na(value)==F) %>% 
-  qtm("value_cut_n",
+  qtm("value_cat",
       lines.lwd = .001,
       fill.palette=pal_rdylbu_rev)
 
@@ -94,7 +94,7 @@ qtm_irr_imp_pu2= zcta_ca_geo_simplified %>%
   left_join(irr_imp_pu2, by = "zcta") %>% 
   #remove everything without a geometry
   filter(is.na(value)==F) %>% 
-  qtm("value_cut_n",
+  qtm("value_cat",
       lines.lwd = .001,
       fill.palette=pal_rdylbu_rev)
 
@@ -116,7 +116,7 @@ qtm_irr_imp_pu3= zcta_ca_geo_simplified %>%
   left_join(irr_imp_pu3, by = "zcta") %>% 
   #remove everything without a geometry
   filter(is.na(value)==F) %>% 
-  qtm("value_cut_n",
+  qtm("value_cat",
       lines.lwd = .001,
       fill.palette=pal_rdylbu_rev)
 
