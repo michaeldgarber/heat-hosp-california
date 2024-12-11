@@ -9,4 +9,4 @@ Static maps <https://michaeldgarber.github.io/heat-hosp-california/vis-static-ma
 
 Interactive maps <https://michaeldgarber.github.io/heat-hosp-california/vis-interactive-maps.html>
 
-Shiny app for IRR <https://michaeldgarber.shinyapps.io/tmap-static/>
+Shiny app  <https://michaeldgarber.shinyapps.io/tmap-static/>

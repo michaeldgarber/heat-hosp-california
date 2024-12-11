@@ -54,7 +54,6 @@ qtm_pop
 
 ## Tree canopy
 ```{r}
-```{r}
 #| echo: false
 #| warning: false
 qtm_tree= zcta_ca_geo_simplified %>% 
