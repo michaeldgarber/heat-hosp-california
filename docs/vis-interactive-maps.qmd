@@ -1,11 +1,12 @@
 ---
-title: "Hospitalization scenarios: interactive maps"
+title: "Interactive maps"
 format:
   html:
     toc: true
     toc_float: true
 ---
 
+# Load data
 ```{r}
 #| echo: false
 #| warning: false
@@ -23,20 +24,81 @@ setwd(here("data-processed"))
 load("zcta_ca_geo_simplified.RData")
 ```
 
-# IRR
-## Impervious surfaces
-### Population-based
-```{r}
-#| echo: false
-#| warning: false
+# Define color palettes
 
+```{r}
 #define some color palettes that flip at 1
 pal_rdylgn5=RColorBrewer::brewer.pal(n=5,"RdYlGn")
 pal_rdylgn5_rev=rev(pal_rdylgn5)
 
 pal_rdylbu=RColorBrewer::brewer.pal(n=5,"RdYlBu")
 pal_rdylbu_rev=rev(pal_rdylbu)
-library(shades)
+
+viridis_5=viridis(5)
+```
+
+# Baseline maps: hospitalizations and covariates
+## Baseline hospitalizations
+Maren, in the data you shared, I wasn't sure which var corresponded to the baseline number of hospitalizations. I mapped population here as a stand-in.
+```{r}
+#| warning: false
+tmap_mode("view") #run again just in case it was changed above.
+qtm_pop= zcta_ca_geo_simplified %>% 
+  left_join(covars, by = "zcta") %>% 
+  #remove everything without a geometry
+  filter(is.na(Pop)==F) %>% 
+  qtm("Pop")
+qtm_pop
+```
+
+
+## Tree canopy
+```{r}
+```{r}
+#| echo: false
+#| warning: false
+qtm_tree= zcta_ca_geo_simplified %>% 
+  left_join(covars, by = "zcta") %>% 
+  #remove everything without a geometry
+  filter(is.na(TreeCanopy)==F) %>% 
+  qtm("TreeCanopy",fill.palette="YlGn")
+qtm_tree
+```
+
+## Impervious surface
+```{r}
+```{r}
+#| echo: false
+#| warning: false
+qtm_imp= zcta_ca_geo_simplified %>% 
+  left_join(covars, by = "zcta") %>% 
+  #remove everything without a geometry
+  filter(is.na(ImpervSurf)==F) %>% 
+  qtm("ImpervSurf",fill.palette="YlOrRd")
+qtm_imp
+```
+## SVI
+```{r}
+#| echo: false
+#| warning: false
+qtm_imp= zcta_ca_geo_simplified %>% 
+  left_join(covars, by = "zcta") %>% 
+  #remove everything without a geometry
+  filter(is.na(SVI)==F) %>% 
+  qtm("SVI",fill.palette="Purples")
+qtm_imp
+```
+
+# IRR
+
+## Impervious surfaces
+
+### Population-based
+
+```{r}
+#| echo: false
+#| warning: false
+
 #impervious surfaces
 irr_imp_pb =  irr_long %>% 
   filter(scenario_intervention=="Imp") %>% 
@@ -59,6 +121,7 @@ qtm_irr_imp_pb
 ```
 
 ### Proportionate Universalism 1
+
 ```{r}
 #| echo: false
 #| warning: false
@@ -80,6 +143,7 @@ qtm_irr_imp_pu1
 ```
 
 ### Proportionate Universalism 2
+
 ```{r}
 #| echo: false
 #| warning: false
@@ -102,6 +166,7 @@ qtm_irr_imp_pu2
 ```
 
 ### Proportionate Universalism 3
+
 ```{r}
 #| echo: false
 #| warning: false
@@ -124,3 +189,34 @@ qtm_irr_imp_pu3
 ```
 
 ## Tree canopy
+
+# IRD
+
+## Impervious surfaces
+
+### Population-based
+
+```{r}
+#| echo: false
+#| warning: false
+
+#impervious surfaces
+ird_imp_pb =  ird_long %>% 
+  filter(scenario_intervention=="Imp") %>% 
+  filter(scenario_type_7=="Pop. based") %>% 
+  dplyr::select("zcta", starts_with("scenario"), "measure", starts_with("value")) 
+
+tmap_mode("view") #run again just in case it was changed above.
+
+#see below for defining palette
+#https://www.rdocumentation.org/packages/tmap/versions/3.3-4/topics/qtm
+qtm_ird_imp_pb= zcta_ca_geo_simplified %>% 
+  left_join(ird_imp_pb, by = "zcta") %>% 
+  #remove everything without a geometry
+  filter(is.na(value)==F) %>% 
+  qtm("value_cat",
+            lines.lwd = .001,
+      fill.palette=viridis_5)
+
+qtm_ird_imp_pb
+```
