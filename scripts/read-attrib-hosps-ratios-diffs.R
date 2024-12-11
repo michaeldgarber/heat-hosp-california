@@ -234,6 +234,10 @@ irr_long = hosp_all_long %>%
     value_cat=santoku::chop_equally(value,groups=5)
   )
 
+#to lighten up r-shiny code, save this
+setwd(here("data-processed"))
+save(irr_long,file="irr_long.RData")
+
 #some are exactly one
 irr_long %>% 
   filter(value>=1) %>% 

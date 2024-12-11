@@ -94,6 +94,10 @@ zcta_ca_geo %>%
   mapview(zcol = "C",
           layer.name = "C")
 
+#does 93461 appear twice?
+zcta_ca_geo_simplified %>% 
+  filter(zcta==93461)
+
 # Load rural urban commuting codes----
 library(here)
 setwd(here("data-input","zcta-ruca"))

@@ -3,14 +3,10 @@ title: "Heat & hospitalizations - index page"
 format: html
 ---
 
-Check data and basic plots
+Check data and basic plots <https://michaeldgarber.github.io/heat-hosp-california/vis-check-plots.html>
 
-<https://michaeldgarber.github.io/heat-hosp-california/vis-check-plots.html>
+Static maps <https://michaeldgarber.github.io/heat-hosp-california/vis-static-maps.html>
 
-Static maps
+Interactive maps <https://michaeldgarber.github.io/heat-hosp-california/vis-interactive-maps.html>
 
-<https://michaeldgarber.github.io/heat-hosp-california/vis-static-maps.html>
-
-Interactive maps
-
-<https://michaeldgarber.github.io/heat-hosp-california/vis-interactive-maps.html>
+Shiny app for IRR <https://michaeldgarber.shinyapps.io/tmap-static/>
